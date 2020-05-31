@@ -1,0 +1,49 @@
+--- drivers/platform/msm/ipa/ipa_v2/ipa_rt.c
++++ drivers/platform/msm/ipa/ipa_v2/ipa_rt.c
+@@ -1380,25 +1401,34 @@
+ 				return -EFAULT;
+ 			}
+ 
++			/* indicate if tbl used for user-specified rules*/
++			if (rule->ipacm_installed) {
++				IPADBG("tbl_user %d, tbl-index %d\n",
++				tbl_user, tbl->id);
++				tbl_user = true;
++			}
+ 			/*
+ 			 * for the "default" routing tbl, remove all but the
+ 			 *  last rule
+ 			 */
+ 			if (tbl->idx == apps_start_idx && tbl->rule_cnt == 1)
+ 				continue;
++			if (!user_only ||
++				rule->ipacm_installed) {
++				list_del(&rule->link);
++				tbl->rule_cnt--;
++				if (rule->hdr)
++					__ipa_release_hdr(rule->hdr->id);
++				else if (rule->proc_ctx)
++					__ipa_release_hdr_proc_ctx(
++						rule->proc_ctx->id);
++				rule->cookie = 0;
++				id = rule->id;
++				kmem_cache_free(ipa_ctx->rt_rule_cache, rule);
+ 
+-			list_del(&rule->link);
+-			tbl->rule_cnt--;
+-			if (rule->hdr)
+-				__ipa_release_hdr(rule->hdr->id);
+-			else if (rule->proc_ctx)
+-				__ipa_release_hdr_proc_ctx(rule->proc_ctx->id);
+-			rule->cookie = 0;
+-			id = rule->id;
+-			kmem_cache_free(ipa_ctx->rt_rule_cache, rule);
+-
+-			/* remove the handle from the database */
+-			ipa_id_remove(id);
++				/* remove the handle from the database */
++				ipa_id_remove(id);
++			}
+ 		}
+ 
+ 		if (ipa_id_find(tbl->id) == NULL) {
