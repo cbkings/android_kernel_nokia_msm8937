@@ -1342,8 +1342,6 @@ int ipa2_reset_rt(enum ipa_ip_type ip, bool user_only)
 	struct ipa_rt_entry *rule_next;
 	struct ipa_rt_tbl_set *rset;
 	u32 apps_start_idx;
-	struct ipa_hdr_entry *hdr_entry;
-	struct ipa_hdr_proc_ctx_entry *hdr_proc_entry;
 	int id;
 	bool tbl_user = false;
 
